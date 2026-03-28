@@ -1,0 +1,50 @@
+.banner {
+  position: fixed;
+  top: 64px;
+  left: 0;
+  right: 0;
+  background-color: var(--color-warning);
+  color: var(--color-gray-900);
+  padding: var(--spacing-sm) var(--spacing-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  z-index: var(--z-sticky);
+  animation: slideDown 0.3s ease;
+}
+
+.online {
+  background-color: var(--color-success);
+  color: white;
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Desktop */
+@media (min-width: 1024px) {
+  .banner {
+    top: 0;
+    position: relative;
+    grid-area: topbar;
+    align-self: end;
+  }
+}
+
+/* Low vision mode */
+:global(.lowVision) .banner {
+  top: 80px;
+  padding: var(--spacing-md) var(--spacing-lg);
+  font-size: var(--font-size-lg);
+}

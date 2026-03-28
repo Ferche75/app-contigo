@@ -1,0 +1,147 @@
+.container {
+  display: flex;
+}
+
+.wrapper {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+  cursor: pointer;
+}
+
+.switchWrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.input {
+  position: absolute;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.track {
+  display: block;
+  background-color: var(--color-gray-300);
+  border-radius: 9999px;
+  position: relative;
+  transition: background-color 0.2s ease;
+}
+
+.track.small {
+  width: 36px;
+  height: 20px;
+}
+
+.track.medium {
+  width: 48px;
+  height: 28px;
+}
+
+.track.large {
+  width: 64px;
+  height: 36px;
+}
+
+.thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  background-color: white;
+  border-radius: 50%;
+  transition: transform 0.2s ease;
+  box-shadow: var(--shadow-sm);
+}
+
+.track.small .thumb {
+  width: 16px;
+  height: 16px;
+}
+
+.track.medium .thumb {
+  width: 24px;
+  height: 24px;
+}
+
+.track.large .thumb {
+  width: 32px;
+  height: 32px;
+}
+
+/* Checked state */
+.input:checked + .track {
+  background-color: var(--color-primary);
+}
+
+.input:checked + .track.small .thumb {
+  transform: translateX(16px);
+}
+
+.input:checked + .track.medium .thumb {
+  transform: translateX(20px);
+}
+
+.input:checked + .track.large .thumb {
+  transform: translateX(28px);
+}
+
+/* Focus state */
+.input:focus-visible + .track {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* Disabled state */
+.input:disabled + .track {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.input:disabled ~ .text {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Text */
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.label {
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.helperText {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+/* Low vision mode */
+:global(.lowVision) .track.medium {
+  width: 72px;
+  height: 40px;
+}
+
+:global(.lowVision) .track.medium .thumb {
+  width: 36px;
+  height: 36px;
+}
+
+:global(.lowVision) .input:checked + .track.medium .thumb {
+  transform: translateX(32px);
+}
+
+:global(.lowVision) .label {
+  font-size: 1.3em;
+}
+
+:global(.lowVision) .helperText {
+  font-size: 1.1em;
+}

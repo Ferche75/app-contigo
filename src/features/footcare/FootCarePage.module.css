@@ -1,0 +1,414 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.header {
+  margin-bottom: var(--spacing-sm);
+}
+
+.title {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0;
+}
+
+/* Info Card */
+.infoCard {
+  background-color: var(--color-info-light);
+  border-color: var(--color-info);
+}
+
+.infoHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+  color: var(--color-info);
+}
+
+.infoHeader h3 {
+  margin: 0;
+  font-size: var(--font-size-lg);
+}
+
+.infoText {
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Check Card */
+.checkCard {
+  cursor: pointer;
+}
+
+.checkCard.warning {
+  border: 2px solid var(--color-warning);
+}
+
+.alert {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm);
+  background-color: var(--color-warning-light);
+  color: var(--color-warning);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  margin-bottom: var(--spacing-md);
+}
+
+/* Quick Actions */
+.quickActions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+/* Section */
+.section {
+  margin-top: var(--spacing-md);
+}
+
+.sectionTitle {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0 0 var(--spacing-sm);
+}
+
+/* FIX: History - larger, more readable chips */
+.historyList {
+  display: flex;
+  gap: var(--spacing-sm);
+  overflow-x: auto;
+  padding-bottom: var(--spacing-sm);
+}
+
+.historyItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm) var(--spacing-sm);
+  background-color: var(--color-success-light);
+  border-radius: var(--radius-lg);
+  /* FIX: bigger minimum width */
+  min-width: 72px;
+  border: 1.5px solid transparent;
+  border-color: var(--color-success);
+}
+
+.historyItem.hasIssue {
+  background-color: var(--color-warning-light);
+  border-color: var(--color-warning);
+  color: var(--color-warning);
+}
+
+.historyDate {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: capitalize;
+  color: var(--color-text);
+}
+
+.historyItem.hasIssue .historyDate {
+  color: var(--color-warning);
+}
+
+.historyStatus {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-success);
+}
+
+.historyItem.hasIssue .historyStatus {
+  color: var(--color-warning);
+}
+
+/* Wounds */
+.woundsList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.woundCard {
+  cursor: pointer;
+}
+
+.woundHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-sm);
+}
+
+.woundLocation {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.severity {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.severity.low {
+  background-color: var(--color-success-light);
+  color: var(--color-success);
+}
+
+.severity.medium {
+  background-color: var(--color-warning-light);
+  color: var(--color-warning);
+}
+
+.severity.high {
+  background-color: var(--color-danger-light);
+  color: var(--color-danger);
+}
+
+.woundDescription {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  margin: 0 0 var(--spacing-sm);
+}
+
+.woundDate {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  margin: 0;
+}
+
+/* Checklist */
+.checklist {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.instructions {
+  display: flex;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  background-color: var(--color-primary-light);
+  color: var(--color-primary-dark);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-sm);
+}
+
+.instructions p {
+  margin: 0;
+}
+
+/* FIX: bigger checkbox area for adults */
+.checkItem {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm);
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  transition: background-color 0.2s ease;
+  /* FIX: large touch target */
+  min-height: 52px;
+}
+
+.checkItem:hover {
+  background-color: var(--color-gray-50);
+}
+
+/* FIX: override global for checklist items specifically - 32px */
+.checkItem input[type="checkbox"] {
+  width: 32px !important;
+  height: 32px !important;
+  margin-top: 2px;
+  accent-color: var(--color-primary);
+  cursor: pointer;
+}
+
+.checkItem span {
+  flex: 1;
+  line-height: 1.5;
+  font-size: var(--font-size-base);
+}
+
+.checkItem span.checked {
+  text-decoration: line-through;
+  color: var(--color-text-muted);
+}
+
+/* Form */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.severitySelector {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.label {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.severityOptions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-sm);
+}
+
+.severityOption {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--spacing-md);
+  background-color: var(--color-gray-100);
+  border: 2px solid transparent;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  /* FIX: ensure adequate tap target */
+  min-height: 64px;
+}
+
+.severityOption:hover {
+  background-color: var(--color-gray-200);
+}
+
+.severityOption.selected {
+  background-color: var(--color-primary-light);
+  border-color: var(--color-primary);
+}
+
+.severityLabel {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.severityDesc {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  margin-top: var(--spacing-xs);
+}
+
+/* Low vision mode */
+:global(.lowVision) .title {
+  font-size: var(--font-size-3xl);
+}
+
+:global(.lowVision) .checkItem input[type="checkbox"] {
+  width: 40px !important;
+  height: 40px !important;
+}
+
+:global(.lowVision) .checkItem {
+  min-height: 64px;
+}
+/* ── AGREGAR AL FINAL DE FootCarePage.module.css ── */
+
+/* Wound photo thumbnail in list */
+.woundPhoto {
+  width: 100%;
+  max-height: 180px;
+  object-fit: cover;
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--spacing-sm);
+}
+
+/* Photo section in modal */
+.photoSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.photoButtons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+/* Camera live view */
+.cameraContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  background: #000;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.cameraVideo {
+  width: 100%;
+  max-height: 260px;
+  object-fit: cover;
+  display: block;
+}
+
+.cameraActions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm);
+  background: #000;
+}
+
+/* Photo preview */
+.photoPreview {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+.previewImg {
+  width: 100%;
+  max-height: 200px;
+  object-fit: cover;
+  border-radius: var(--radius-lg);
+  border: 2px solid var(--color-primary);
+  display: block;
+}
+
+.removePhoto {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 32px;
+  height: 32px;
+  background: rgba(0,0,0,0.6);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.removePhoto:hover {
+  background: var(--color-danger);
+}
+
+.cameraError {
+  font-size: var(--font-size-sm);
+  color: var(--color-danger);
+  margin: 0;
+  padding: var(--spacing-sm);
+  background: var(--color-danger-light);
+  border-radius: var(--radius-md);
+}

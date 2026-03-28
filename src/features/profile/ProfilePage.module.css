@@ -1,0 +1,243 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.header {
+  margin-bottom: var(--spacing-sm);
+}
+
+.title {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0;
+}
+
+/* User Card */
+.userCard {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  color: white;
+}
+
+.userInfo {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.avatar {
+  width: 64px;
+  height: 64px;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.userDetails {
+  flex: 1;
+  min-width: 0;
+}
+
+.userName {
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  margin: 0;
+  color: white;
+}
+
+.userEmail {
+  font-size: var(--font-size-sm);
+  margin: var(--spacing-xs) 0 0;
+  opacity: 0.9;
+  color: white;
+}
+
+/* Contacts */
+.emptyContacts {
+  color: var(--color-text-secondary);
+  text-align: center;
+  padding: var(--spacing-md);
+  font-style: italic;
+}
+
+.contactsList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.contactItem {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: var(--spacing-md);
+  background-color: var(--color-gray-50);
+  border-radius: var(--radius-lg);
+  gap: var(--spacing-sm);
+}
+
+.contactInfo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  flex: 1;
+  min-width: 0;
+}
+
+.contactName {
+  font-weight: 600;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.primaryBadge {
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  padding: 2px var(--spacing-xs);
+  background-color: var(--color-primary-light);
+  color: var(--color-primary);
+  border-radius: var(--radius-full);
+}
+
+.contactPhone {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.contactWhatsapp,
+.contactRelation {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.contactActions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.addContactBtn {
+  margin-top: var(--spacing-md);
+}
+
+/* Settings */
+.settingsList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+/* Disclaimer */
+.disclaimer {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  background-color: var(--color-info-light);
+  color: var(--color-info);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-sm);
+}
+
+.disclaimer svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* Logout */
+.logoutBtn {
+  margin-top: var(--spacing-md);
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+
+.logoutBtn:hover {
+  background-color: var(--color-danger-light);
+}
+
+/* Footer */
+.footer {
+  text-align: center;
+  padding: var(--spacing-lg) 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.version {
+  margin-top: var(--spacing-xs);
+  font-size: var(--font-size-xs);
+}
+
+/* Form */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+/* Low vision mode */
+:global(.lowVision) .title {
+  font-size: var(--font-size-3xl);
+}
+
+:global(.lowVision) .userName {
+  font-size: var(--font-size-2xl);
+}
+
+:global(.lowVision) .contactItem {
+  padding: var(--spacing-lg);
+}
+/* Agregar al final de ProfilePage.module.css */
+
+.codeBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.codeHint {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.codeDisplay {
+  text-align: center;
+  font-size: 2.5rem;
+  font-weight: 700;
+  letter-spacing: 0.5em;
+  padding: var(--spacing-lg);
+  background: var(--color-primary-50);
+  border-radius: var(--radius-xl);
+  color: var(--color-primary-dark);
+  border: 2px solid var(--color-primary);
+}
+
+.codeExpiry {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin: 0;
+  text-align: center;
+}
+
+.revokeBtn {
+  color: var(--color-danger) !important;
+}
+/* Agregar al final de ProfilePage.module.css */
+
+.phoneRow {
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: flex-end;
+}
+
+.phoneRow > :first-child {
+  flex: 1;
+}

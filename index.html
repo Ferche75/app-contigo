@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/icons/favicon.svg" />
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
+    <meta name="theme-color" content="#0d9488" />
+    <meta name="description" content="Contigo - Como un hijo cuidando a su padre con diabetes. App para manejar el día a día con diabetes de forma simple, usable y segura." />
+    <meta name="keywords" content="diabetes, salud, medicación, cuidado de pies, recordatorios" />
+    <meta name="author" content="cheves.co" />
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- iOS PWA -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Contigo" />
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="Contigo - Diabetes Care" />
+    <meta property="og:description" content="Como un hijo cuidando a su padre con diabetes" />
+    <meta property="og:type" content="website" />
+    
+    <title>Contigo - Diabetes Care</title>
+    
+    <!-- Preconnect to Supabase -->
+    <link rel="preconnect" href="https://*.supabase.co" />
+    
+    <style>
+      /* Critical CSS for initial load */
+      html, body {
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      }
+      #root {
+        min-height: 100vh;
+      }
+      .loading-screen {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%);
+      }
+      .loading-spinner {
+        width: 48px;
+        height: 48px;
+        border: 4px solid #0d9488;
+        border-top-color: transparent;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root">
+      <div class="loading-screen">
+        <div class="loading-spinner"></div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- Disclaimer for users without JavaScript -->
+    <noscript>
+      <div style="padding: 20px; text-align: center;">
+        <h1>Contigo - Diabetes Care</h1>
+        <p>Esta aplicación requiere JavaScript para funcionar. Por favor habilita JavaScript en tu navegador.</p>
+      </div>
+    </noscript>
+  </body>
+</html>

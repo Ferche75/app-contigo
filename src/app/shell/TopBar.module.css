@@ -1,0 +1,213 @@
+.topBar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background-color: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  z-index: var(--z-fixed);
+  padding: 0 env(safe-area-inset-right) 0 env(safe-area-inset-left);
+}
+
+.container {
+  max-width: var(--max-width-md);
+  margin: 0 auto;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--spacing-md);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: var(--spacing-xs);
+  border-radius: var(--radius-lg);
+  transition: background-color 0.2s ease;
+}
+
+.brand:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.logoImg {
+  height: 36px;
+  width: auto;
+  object-fit: contain;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.iconButton {
+  width: 44px !important;
+  height: 44px !important;
+  padding: 0 !important;
+  min-height: auto !important;
+  position: relative;
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.iconButton svg {
+  color: var(--color-text-secondary);
+}
+
+.iconButton:hover svg {
+  color: #0d9488;
+}
+
+.iconButton:hover {
+  background: var(--color-gray-100);
+}
+
+/* Notification bell */
+.bellWrap {
+  position: relative;
+}
+
+.badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 16px;
+  height: 16px;
+  background: var(--color-danger);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+/* Notification panel */
+.notifPanel {
+  position: fixed;
+  top: 68px;
+  left: var(--spacing-md);
+  right: var(--spacing-md);
+  width: auto;
+  max-height: 420px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+  z-index: var(--z-dropdown);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.notifHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-md);
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.notifTitle {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.clearBtn {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  min-height: auto;
+}
+
+.clearBtn:hover {
+  color: var(--color-danger);
+  background: var(--color-danger-light);
+}
+
+.notifList {
+  overflow-y: auto;
+  flex: 1;
+}
+
+.notifEmpty {
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  padding: var(--spacing-xl);
+}
+
+.notifItem {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-primary-50);
+  transition: background 0.2s ease;
+}
+
+.notifItem:last-child {
+  border-bottom: none;
+}
+
+.notifRead {
+  background: var(--color-surface);
+}
+
+.notifItemTitle {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 2px;
+}
+
+.notifItemBody {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+  margin-bottom: 4px;
+}
+
+.notifItemTime {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+/* Desktop */
+@media (min-width: 1024px) {
+  .topBar {
+    position: relative;
+    grid-area: topbar;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .container {
+    max-width: none;
+    padding: 0 var(--spacing-lg);
+  }
+}
+
+/* Low vision mode */
+:global(.lowVision) .topBar { height: 80px; }
+:global(.lowVision) .logoImg { height: 48px; }
+:global(.lowVision) .iconButton { width: 56px !important; height: 56px !important; }
+:global(.lowVision) .iconButton svg { width: 28px; height: 28px; }
