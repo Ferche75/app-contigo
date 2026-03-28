@@ -3,13 +3,17 @@ import { supabase } from '@/data/supabase/client'
 
 const VAPID_PUBLIC_KEY = 'BKgjmuvy7ZAdcoB-m0kIbDw1dvQ9XrJyeaNs-dlnrmaSvJIK0araZOOIc_1Nl-i57NQg8F2bzMHfruVvVOB8qFc'
 const SUPABASE_URL = 'https://urapmtfohsaiwsvwbazt.supabase.co'
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_LEGACY_KEY
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_LEGACY_KEY as string
 
-function urlBase64ToUint8Array(base64String: string): Uint8Array {
+function urlBase64ToUint8Array(base64String: string): ArrayBuffer {
   const padding = '='.repeat((4 - base64String.length % 4) % 4)
   const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/')
   const rawData = window.atob(base64)
-  return Uint8Array.from([...rawData].map(char => char.charCodeAt(0)))
+  const outputArray = new Uint8Array(rawData.length)
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i)
+  }
+  return outputArray.buffer
 }
 
 export const notificationService = {
@@ -67,7 +71,6 @@ export const notificationService = {
     }
   },
 
-  // Send push to patient via Edge Function (called by caregiver)
   async sendReminderToPatient(patientUserId: string, caregiverName: string, message: string): Promise<boolean> {
     try {
       const { data: { session } } = await supabase.auth.getSession()
@@ -107,12 +110,13 @@ export const notificationService = {
   async showLocal(title: string, body: string, tag?: string): Promise<void> {
     if (Notification.permission !== 'granted') return
     const reg = await navigator.serviceWorker.ready
+    // vibrate is not in standard NotificationOptions type but works at runtime
     await reg.showNotification(title, {
       body,
       icon: '/logoc.png',
       badge: '/logoc.png',
       tag: tag || 'contigo',
-      vibrate: [200, 100, 200],
+      data: { vibrate: [200, 100, 200] }
     })
   },
 
