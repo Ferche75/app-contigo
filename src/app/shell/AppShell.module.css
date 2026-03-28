@@ -1,0 +1,55 @@
+.shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: var(--color-background);
+}
+
+.main {
+  flex: 1;
+  padding-top: 64px; /* TopBar height */
+  padding-bottom: 80px; /* TabBar height */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.content {
+  max-width: var(--max-width-md);
+  margin: 0 auto;
+  padding: var(--spacing-md);
+  width: 100%;
+}
+
+/* Desktop layout */
+@media (min-width: 1024px) {
+  .shell {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+      "topbar topbar"
+      "sidebar main";
+  }
+
+  .main {
+    grid-area: main;
+    padding-top: 0;
+    padding-bottom: 0;
+    padding: var(--spacing-lg);
+  }
+
+  .content {
+    max-width: none;
+    padding: 0;
+  }
+}
+
+/* Low vision mode adjustments */
+:global(.lowVision) .main {
+  padding-top: 80px;
+  padding-bottom: 100px;
+}
+
+:global(.lowVision) .content {
+  padding: var(--spacing-lg);
+}

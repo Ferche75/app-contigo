@@ -1,0 +1,230 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.welcome { margin-bottom: var(--spacing-sm); }
+
+.greeting {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.date {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  margin: var(--spacing-xs) 0 0;
+  text-transform: capitalize;
+}
+
+/* Vitals strip - NEW */
+.vitalsStrip {
+  cursor: pointer;
+}
+
+.vitalsStrip.warning {
+  border: 2px solid var(--color-danger);
+}
+
+.vitalsRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+}
+
+.vitalsMainIcon { color: var(--color-primary); flex-shrink: 0; }
+.vitalsArrow { color: var(--color-text-muted); margin-left: auto; flex-shrink: 0; }
+
+.vitalsTitle {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  flex: 1;
+}
+
+.vitalsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-sm);
+}
+
+.vitalChip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: var(--spacing-sm);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.vital_empty { background: var(--color-gray-100); color: var(--color-text-muted); }
+.vital_normal { background: var(--color-success-light); color: var(--color-success); }
+.vital_low { background: var(--color-secondary-light); color: var(--color-secondary-dark); }
+.vital_elevated { background: var(--color-warning-light); color: var(--color-warning); }
+.vital_high { background: var(--color-danger-light); color: var(--color-danger); }
+.vital_crisis { background: #ede9fe; color: #7c3aed; }
+
+.card { cursor: pointer; }
+
+.card.warning { border: 2px solid var(--color-warning); }
+
+.empty {
+  color: var(--color-text-secondary);
+  font-style: italic;
+  text-align: center;
+  padding: var(--spacing-md);
+}
+
+/* Medication List */
+.medicationList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.medicationItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-sm);
+  background-color: var(--color-gray-50);
+  border-radius: var(--radius-lg);
+  gap: var(--spacing-sm);
+  /* FIX: minimum tap target */
+  min-height: 56px;
+}
+
+.medicationItem.taken {
+  opacity: 0.7;
+  background-color: var(--color-success-light);
+}
+
+.medInfo {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.medTime {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.medName {
+  font-weight: 600;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.medDose {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+/* Alert */
+.alert {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm);
+  background-color: var(--color-warning-light);
+  color: var(--color-warning);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+}
+
+/* Journal Preview */
+.journalPreview {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Appointment */
+.appointmentDoctor { font-weight: 600; color: var(--color-text); margin: 0; }
+.appointmentSpecialty { font-size: var(--font-size-sm); color: var(--color-text-secondary); margin: var(--spacing-xs) 0 0; }
+.appointmentLocation { font-size: var(--font-size-sm); color: var(--color-text-muted); margin: var(--spacing-xs) 0 0; }
+
+/* Disclaimer */
+.disclaimer {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  background-color: var(--color-info-light);
+  color: var(--color-info);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-sm);
+  margin-top: var(--spacing-md);
+}
+
+.disclaimer svg { flex-shrink: 0; margin-top: 2px; }
+
+/* Foot Checklist */
+.footChecklist {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.footInstructions {
+  background-color: var(--color-primary-light);
+  color: var(--color-primary-dark);
+  padding: var(--spacing-md);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-sm);
+  margin: 0;
+}
+
+/* FIX: large touch targets for checklist */
+.checklistItem {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm);
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  transition: background-color 0.2s ease;
+  min-height: 52px;
+}
+
+.checklistItem:hover { background-color: var(--color-gray-50); }
+
+.checklistItem input[type="checkbox"] {
+  width: 32px !important;
+  height: 32px !important;
+  margin-top: 2px;
+  accent-color: var(--color-primary);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.checklistItem span {
+  flex: 1;
+  line-height: 1.5;
+  font-size: var(--font-size-base);
+}
+
+.checklistItem span.checked {
+  text-decoration: line-through;
+  color: var(--color-text-muted);
+}
+
+/* Low vision */
+:global(.lowVision) .greeting { font-size: var(--font-size-3xl); }
+:global(.lowVision) .date { font-size: var(--font-size-lg); }
+:global(.lowVision) .medicationItem { padding: var(--spacing-md); min-height: 72px; }
+:global(.lowVision) .checklistItem input[type="checkbox"] { width: 40px !important; height: 40px !important; }

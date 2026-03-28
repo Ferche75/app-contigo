@@ -1,0 +1,102 @@
+.tabBar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  background-color: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  z-index: var(--z-fixed);
+  padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+.container {
+  max-width: var(--max-width-md);
+  margin: 0 auto;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: var(--spacing-xs) 0;
+}
+
+.tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: transparent;
+  border: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  border-radius: var(--radius-lg);
+  transition: all 0.2s ease;
+  /* FIX: bigger touch target for older adults */
+  min-width: 68px;
+  min-height: 60px;
+}
+
+.tab:hover {
+  background-color: var(--color-gray-100);
+  color: var(--color-text);
+}
+
+.tab:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* FIX: visible active state with background pill */
+.active {
+  color: var(--color-primary);
+  background-color: var(--color-primary-50);
+}
+
+.active .icon {
+  transform: translateY(-2px);
+}
+
+.icon {
+  transition: transform 0.2s ease;
+}
+
+.label {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+}
+
+.active .label {
+  font-weight: 700;
+}
+
+@media (min-width: 1024px) {
+  .tabBar {
+    display: none;
+  }
+}
+
+/* Low vision mode */
+:global(.lowVision) .tabBar {
+  height: 100px;
+}
+
+:global(.lowVision) .tab {
+  min-width: 80px;
+  min-height: 78px;
+  gap: 8px;
+}
+
+:global(.lowVision) .icon {
+  width: 32px;
+  height: 32px;
+}
+
+:global(.lowVision) .label {
+  font-size: var(--font-size-base);
+}
+.tab:hover .icon,
+.tab:hover .label {
+  color: var(--color-primary);
+}
