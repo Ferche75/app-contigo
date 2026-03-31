@@ -20,28 +20,51 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
+// Persist role in localStorage so reload works instantly
+const ROLE_KEY = 'contigo_user_role'
+const ADMIN_KEY = 'contigo_user_admin'
+
+const saveRoleLocally = (role: string, isAdmin: boolean) => {
+  localStorage.setItem(ROLE_KEY, role)
+  localStorage.setItem(ADMIN_KEY, String(isAdmin))
+}
+
+const getLocalRole = () => ({
+  role: localStorage.getItem(ROLE_KEY) || 'patient',
+  isAdmin: localStorage.getItem(ADMIN_KEY) === 'true'
+})
+
+const clearLocalRole = () => {
+  localStorage.removeItem(ROLE_KEY)
+  localStorage.removeItem(ADMIN_KEY)
+}
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<UserProfile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [isAdmin, setIsAdmin] = useState(false)
-  const [isCaregiver, setIsCaregiver] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(() => getLocalRole().isAdmin)
+  const [isCaregiver, setIsCaregiver] = useState(() => getLocalRole().role === 'caregiver')
   const initialized = useRef(false)
 
   const loadUser = useCallback(async (userId: string) => {
     try {
-      // Single query — profile + role + is_admin in one shot
+      // 1. Load from local DB first (instant, no network)
+      const local = await profilesRepo.get(userId)
+      if (local) {
+        setUser(local)
+        const cached = getLocalRole()
+        setIsCaregiver(cached.role === 'caregiver')
+        setIsAdmin(cached.isAdmin)
+      }
+
+      // 2. Fetch fresh data from Supabase
       const { data, error } = await supabase
         .from('profiles')
         .select('*, role, is_admin')
         .eq('id', userId)
         .maybeSingle()
 
-      if (error || !data) {
-        const local = await profilesRepo.get(userId)
-        if (local) setUser(local)
-        else setUser(null)
-        return
-      }
+      if (error || !data) return
 
       const profile: UserProfile = {
         id: data.id,
@@ -63,6 +86,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsAdmin(data.is_admin === true)
       setIsCaregiver(data.role === 'caregiver')
 
+      // Save role for next reload
+      saveRoleLocally(data.role || 'patient', data.is_admin === true)
+
+      // Sync patient data only
       if (data.role !== 'caregiver') {
         syncEngine.syncFromServer(userId).catch(console.error)
       }
@@ -86,6 +113,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const session = await getSession()
         if (session?.user) {
           await loadUser(session.user.id)
+        } else {
+          clearLocalRole()
         }
       } catch (error) {
         console.error('Error in initAuth:', error)
@@ -105,6 +134,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setUser(null)
           setIsAdmin(false)
           setIsCaregiver(false)
+          clearLocalRole()
           await clearAllData()
         }
       }
@@ -121,7 +151,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         options: { data: { name, role } }
       })
       if (error) return { error }
-      if (data.user) await loadUser(data.user.id)
+      if (data.user) {
+        saveRoleLocally(role, false)
+        await loadUser(data.user.id)
+      }
       return { error: null }
     } catch (error) {
       return { error: error as Error }
@@ -144,6 +177,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null)
     setIsAdmin(false)
     setIsCaregiver(false)
+    clearLocalRole()
     await clearAllData()
   }
 
