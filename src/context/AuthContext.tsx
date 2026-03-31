@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react'
-import { supabase, getSession } from '@/data/supabase/client'
+import { supabase } from '@/data/supabase/client'
 import { clearAllData } from '@/data/local/db'
 import { syncEngine } from '@/data/sync/syncEngine'
 import { profilesRepo } from '@/data/repos/profilesRepo'
@@ -20,72 +20,135 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
+const ROLE_KEY = 'contigo_user_role'
+const ADMIN_KEY = 'contigo_user_admin'
+const USER_KEY = 'contigo_user_cache'
+
+const saveRoleLocally = (role: string, isAdmin: boolean) => {
+  try {
+    localStorage.setItem(ROLE_KEY, role)
+    localStorage.setItem(ADMIN_KEY, String(isAdmin))
+  } catch {}
+}
+
+const getLocalRole = () => {
+  try {
+    return {
+      role: localStorage.getItem(ROLE_KEY) ?? 'patient',
+      isAdmin: localStorage.getItem(ADMIN_KEY) === 'true'
+    }
+  } catch {
+    return { role: 'patient', isAdmin: false }
+  }
+}
+
+const saveUserCache = (user: UserProfile) => {
+  try { localStorage.setItem(USER_KEY, JSON.stringify(user)) } catch {}
+}
+
+const getUserCache = (): UserProfile | null => {
+  try {
+    const raw = localStorage.getItem(USER_KEY)
+    return raw ? JSON.parse(raw) : null
+  } catch { return null }
+}
+
+const clearLocalRole = () => {
+  try {
+    localStorage.removeItem(ROLE_KEY)
+    localStorage.removeItem(ADMIN_KEY)
+    localStorage.removeItem(USER_KEY)
+  } catch {}
+}
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<UserProfile | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [isAdmin, setIsAdmin] = useState(false)
-  const [isCaregiver, setIsCaregiver] = useState(false)
+  const cachedUser = getUserCache()
+  const cachedRole = getLocalRole()
+
+  const [user, setUser] = useState<UserProfile | null>(cachedUser)
+  const [isLoading, setIsLoading] = useState(!cachedUser)
+  const [isAdmin, setIsAdmin] = useState(cachedRole.isAdmin)
+  const [isCaregiver, setIsCaregiver] = useState(cachedRole.role === 'caregiver')
   const initialized = useRef(false)
 
+  const refreshFromServer = useCallback((userId: string) => {
+    supabase
+      .from('profiles')
+      .select('*, role, is_admin')
+      .eq('id', userId)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (error || !data) return
+
+        const profile: UserProfile = {
+          id: data.id,
+          email: data.email,
+          name: data.name,
+          age: data.age,
+          diabetesType: data.diabetes_type,
+          doctorName: data.doctor_name,
+          doctorPhone: data.doctor_phone,
+          allergies: data.allergies,
+          baseMedication: data.base_medication,
+          emergencyContacts: data.emergency_contacts || [],
+          lowVisionMode: data.low_vision_mode ?? false,
+          createdAt: data.created_at,
+          updatedAt: data.updated_at
+        }
+
+        setUser(profile)
+        setIsAdmin(data.is_admin === true)
+        setIsCaregiver(data.role === 'caregiver')
+        saveRoleLocally(data.role || 'patient', data.is_admin === true)
+        saveUserCache(profile)
+
+        if (data.role !== 'caregiver') {
+          syncEngine.syncFromServer(userId).catch(console.error)
+        }
+      })
+      .catch(console.error)
+  }, [])
+
   const loadUser = useCallback(async (userId: string) => {
-    try {
-      // Single query — profile + role + is_admin in one shot
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*, role, is_admin')
-        .eq('id', userId)
-        .maybeSingle()
-
-      if (error || !data) {
-        const local = await profilesRepo.get(userId)
-        if (local) setUser(local)
-        else setUser(null)
-        return
-      }
-
-      const profile: UserProfile = {
-        id: data.id,
-        email: data.email,
-        name: data.name,
-        age: data.age,
-        diabetesType: data.diabetes_type,
-        doctorName: data.doctor_name,
-        doctorPhone: data.doctor_phone,
-        allergies: data.allergies,
-        baseMedication: data.base_medication,
-        emergencyContacts: data.emergency_contacts || [],
-        lowVisionMode: data.low_vision_mode ?? false,
-        createdAt: data.created_at,
-        updatedAt: data.updated_at
-      }
-
-      setUser(profile)
-      setIsAdmin(data.is_admin === true)
-      setIsCaregiver(data.role === 'caregiver')
-
-      if (data.role !== 'caregiver') {
-        syncEngine.syncFromServer(userId).catch(console.error)
-      }
-
-    } catch (error) {
-      console.error('Error in loadUser:', error)
+    const cached = getUserCache()
+    if (cached && cached.id === userId) {
+      setUser(cached)
+      const role = getLocalRole()
+      setIsCaregiver(role.role === 'caregiver')
+      setIsAdmin(role.isAdmin)
+    } else {
       try {
-        const local = await profilesRepo.get(userId)
-        if (local) setUser(local)
+        const local = await Promise.race<UserProfile | null>([
+          profilesRepo.get(userId),
+          new Promise<null>(resolve => setTimeout(() => resolve(null), 1000))
+        ])
+        if (local) {
+          setUser(local)
+          saveUserCache(local)
+          const role = getLocalRole()
+          setIsCaregiver(role.role === 'caregiver')
+          setIsAdmin(role.isAdmin)
+        }
       } catch {}
     }
-  }, [])
+    refreshFromServer(userId)
+  }, [refreshFromServer])
 
   useEffect(() => {
     if (initialized.current) return
     initialized.current = true
 
     const initAuth = async () => {
-      setIsLoading(true)
+      if (!cachedUser) setIsLoading(true)
+
       try {
-        const session = await getSession()
+        // getSession reads from localStorage - should be instant
+        const { data: { session } } = await supabase.auth.getSession()
+
         if (session?.user) {
           await loadUser(session.user.id)
+        } else if (!cachedUser) {
+          clearLocalRole()
         }
       } catch (error) {
         console.error('Error in initAuth:', error)
@@ -105,13 +168,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setUser(null)
           setIsAdmin(false)
           setIsCaregiver(false)
+          clearLocalRole()
           await clearAllData()
         }
       }
     )
 
     return () => { subscription.unsubscribe() }
-  }, [loadUser])
+  }, [loadUser, cachedUser])
 
   const signUp = async (email: string, password: string, name: string, role: string = 'patient') => {
     try {
@@ -121,7 +185,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         options: { data: { name, role } }
       })
       if (error) return { error }
-      if (data.user) await loadUser(data.user.id)
+      if (data.user) {
+        saveRoleLocally(role, false)
+        await loadUser(data.user.id)
+      }
       return { error: null }
     } catch (error) {
       return { error: error as Error }
@@ -144,6 +211,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null)
     setIsAdmin(false)
     setIsCaregiver(false)
+    clearLocalRole()
     await clearAllData()
   }
 
@@ -155,6 +223,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!user) return
     const updated = { ...user, ...updates, updatedAt: new Date().toISOString() }
     setUser(updated)
+    saveUserCache(updated)
     await profilesRepo.save(updated)
   }
 

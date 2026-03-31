@@ -38,7 +38,7 @@ export const profilesRepo = {
 
       // Timeout de 3 segundos
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Timeout after 3s')), 3000)
+        setTimeout(() => reject(new Error('Timeout after 10s')), 10000)
       })
 
       const { data, error } = await Promise.race([
