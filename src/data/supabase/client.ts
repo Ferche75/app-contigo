@@ -7,30 +7,21 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: true
+    detectSessionInUrl: true,
+    storageKey: 'contigo-auth'
   }
 })
 
-// Auth helpers
 export const signUp = async (email: string, password: string) => {
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-  })
-  return { data, error }
+  return await supabase.auth.signUp({ email, password })
 }
 
 export const signIn = async (email: string, password: string) => {
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  })
-  return { data, error }
+  return await supabase.auth.signInWithPassword({ email, password })
 }
 
 export const signOut = async () => {
-  const { error } = await supabase.auth.signOut()
-  return { error }
+  return await supabase.auth.signOut()
 }
 
 export const getCurrentUser = async () => {
@@ -38,6 +29,7 @@ export const getCurrentUser = async () => {
   return user
 }
 
+// Lee del localStorage sin ir a la red — instantáneo
 export const getSession = async () => {
   const { data: { session } } = await supabase.auth.getSession()
   return session
