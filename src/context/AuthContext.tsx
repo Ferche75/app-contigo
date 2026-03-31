@@ -151,9 +151,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       try {
         const session = await Promise.race([
-          getSession(),
-          new Promise<null>(resolve => setTimeout(() => resolve(null), 5000))
-        ])
+  getSession().catch(() => null),
+  new Promise<null>(resolve => setTimeout(() => resolve(null), 5000))
+])
 
         if (session?.user) {
           await loadUser(session.user.id)
