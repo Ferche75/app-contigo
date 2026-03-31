@@ -7,8 +7,8 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: true,
-    storageKey: 'contigo-auth'
+    detectSessionInUrl: true
+    // Sin storageKey — usa el default
   }
 })
 
