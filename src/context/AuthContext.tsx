@@ -20,100 +20,144 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-// Persist role in localStorage so reload works instantly
 const ROLE_KEY = 'contigo_user_role'
 const ADMIN_KEY = 'contigo_user_admin'
+const USER_KEY = 'contigo_user_cache'
 
 const saveRoleLocally = (role: string, isAdmin: boolean) => {
-  localStorage.setItem(ROLE_KEY, role)
-  localStorage.setItem(ADMIN_KEY, String(isAdmin))
+  try {
+    localStorage.setItem(ROLE_KEY, role)
+    localStorage.setItem(ADMIN_KEY, String(isAdmin))
+  } catch {}
 }
 
-const getLocalRole = () => ({
-  role: localStorage.getItem(ROLE_KEY) || 'patient',
-  isAdmin: localStorage.getItem(ADMIN_KEY) === 'true'
-})
+const getLocalRole = () => {
+  try {
+    return {
+      role: localStorage.getItem(ROLE_KEY) ?? 'patient',
+      isAdmin: localStorage.getItem(ADMIN_KEY) === 'true'
+    }
+  } catch {
+    return { role: 'patient', isAdmin: false }
+  }
+}
+
+const saveUserCache = (user: UserProfile) => {
+  try { localStorage.setItem(USER_KEY, JSON.stringify(user)) } catch {}
+}
+
+const getUserCache = (): UserProfile | null => {
+  try {
+    const raw = localStorage.getItem(USER_KEY)
+    return raw ? JSON.parse(raw) : null
+  } catch { return null }
+}
 
 const clearLocalRole = () => {
-  localStorage.removeItem(ROLE_KEY)
-  localStorage.removeItem(ADMIN_KEY)
+  try {
+    localStorage.removeItem(ROLE_KEY)
+    localStorage.removeItem(ADMIN_KEY)
+    localStorage.removeItem(USER_KEY)
+  } catch {}
 }
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<UserProfile | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [isAdmin, setIsAdmin] = useState(() => getLocalRole().isAdmin)
-  const [isCaregiver, setIsCaregiver] = useState(() => getLocalRole().role === 'caregiver')
+  // Initialize from localStorage cache — zero network delay
+  const cachedUser = getUserCache()
+  const cachedRole = getLocalRole()
+
+  const [user, setUser] = useState<UserProfile | null>(cachedUser)
+  const [isLoading, setIsLoading] = useState(!cachedUser) // skip loading if cached
+  const [isAdmin, setIsAdmin] = useState(cachedRole.isAdmin)
+  const [isCaregiver, setIsCaregiver] = useState(cachedRole.role === 'caregiver')
   const initialized = useRef(false)
 
+  // Background refresh from Supabase — never blocks UI
+  const refreshFromServer = useCallback((userId: string) => {
+    supabase
+      .from('profiles')
+      .select('*, role, is_admin')
+      .eq('id', userId)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (error || !data) return
+
+        const profile: UserProfile = {
+          id: data.id,
+          email: data.email,
+          name: data.name,
+          age: data.age,
+          diabetesType: data.diabetes_type,
+          doctorName: data.doctor_name,
+          doctorPhone: data.doctor_phone,
+          allergies: data.allergies,
+          baseMedication: data.base_medication,
+          emergencyContacts: data.emergency_contacts || [],
+          lowVisionMode: data.low_vision_mode ?? false,
+          createdAt: data.created_at,
+          updatedAt: data.updated_at
+        }
+
+        setUser(profile)
+        setIsAdmin(data.is_admin === true)
+        setIsCaregiver(data.role === 'caregiver')
+
+        saveRoleLocally(data.role || 'patient', data.is_admin === true)
+        saveUserCache(profile)
+
+        if (data.role !== 'caregiver') {
+          syncEngine.syncFromServer(userId).catch(console.error)
+        }
+      })
+      .catch(console.error)
+  }, [])
+
   const loadUser = useCallback(async (userId: string) => {
-    try {
-      // 1. Load from local DB first (instant, no network)
-      const local = await profilesRepo.get(userId)
-      if (local) {
-        setUser(local)
-        const cached = getLocalRole()
-        setIsCaregiver(cached.role === 'caregiver')
-        setIsAdmin(cached.isAdmin)
-      }
-
-      // 2. Fetch fresh data from Supabase
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*, role, is_admin')
-        .eq('id', userId)
-        .maybeSingle()
-
-      if (error || !data) return
-
-      const profile: UserProfile = {
-        id: data.id,
-        email: data.email,
-        name: data.name,
-        age: data.age,
-        diabetesType: data.diabetes_type,
-        doctorName: data.doctor_name,
-        doctorPhone: data.doctor_phone,
-        allergies: data.allergies,
-        baseMedication: data.base_medication,
-        emergencyContacts: data.emergency_contacts || [],
-        lowVisionMode: data.low_vision_mode ?? false,
-        createdAt: data.created_at,
-        updatedAt: data.updated_at
-      }
-
-      setUser(profile)
-      setIsAdmin(data.is_admin === true)
-      setIsCaregiver(data.role === 'caregiver')
-
-      // Save role for next reload
-      saveRoleLocally(data.role || 'patient', data.is_admin === true)
-
-      // Sync patient data only
-      if (data.role !== 'caregiver') {
-        syncEngine.syncFromServer(userId).catch(console.error)
-      }
-
-    } catch (error) {
-      console.error('Error in loadUser:', error)
+    // 1. Try localStorage cache (instant)
+    const cached = getUserCache()
+    if (cached && cached.id === userId) {
+      setUser(cached)
+      const role = getLocalRole()
+      setIsCaregiver(role.role === 'caregiver')
+      setIsAdmin(role.isAdmin)
+    } else {
+      // 2. Try local IndexedDB
       try {
-        const local = await profilesRepo.get(userId)
-        if (local) setUser(local)
+        const local = await Promise.race([
+          profilesRepo.get(userId),
+          new Promise<null>(resolve => setTimeout(() => resolve(null), 1000))
+        ])
+        if (local) {
+          setUser(local)
+          saveUserCache(local)
+          const role = getLocalRole()
+          setIsCaregiver(role.role === 'caregiver')
+          setIsAdmin(role.isAdmin)
+        }
       } catch {}
     }
-  }, [])
+
+    // 3. Always refresh from server in background
+    refreshFromServer(userId)
+  }, [refreshFromServer])
 
   useEffect(() => {
     if (initialized.current) return
     initialized.current = true
 
     const initAuth = async () => {
-      setIsLoading(true)
+      // If we have cached user, don't show loading
+      if (!cachedUser) setIsLoading(true)
+
       try {
-        const session = await getSession()
+        const session = await Promise.race([
+          getSession(),
+          new Promise<null>(resolve => setTimeout(() => resolve(null), 5000))
+        ])
+
         if (session?.user) {
           await loadUser(session.user.id)
-        } else {
+        } else if (!cachedUser) {
           clearLocalRole()
         }
       } catch (error) {
@@ -141,7 +185,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     )
 
     return () => { subscription.unsubscribe() }
-  }, [loadUser])
+  }, [loadUser, cachedUser])
 
   const signUp = async (email: string, password: string, name: string, role: string = 'patient') => {
     try {
@@ -189,6 +233,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!user) return
     const updated = { ...user, ...updates, updatedAt: new Date().toISOString() }
     setUser(updated)
+    saveUserCache(updated)
     await profilesRepo.save(updated)
   }
 
