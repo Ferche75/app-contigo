@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react'
-import { supabase, getSession } from '@/data/supabase/client'
+import { supabase } from '@/data/supabase/client'
 import { clearAllData } from '@/data/local/db'
 import { syncEngine } from '@/data/sync/syncEngine'
 import { profilesRepo } from '@/data/repos/profilesRepo'
@@ -62,17 +62,15 @@ const clearLocalRole = () => {
 }
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Initialize from localStorage cache — zero network delay
   const cachedUser = getUserCache()
   const cachedRole = getLocalRole()
 
   const [user, setUser] = useState<UserProfile | null>(cachedUser)
-  const [isLoading, setIsLoading] = useState(!cachedUser) // skip loading if cached
+  const [isLoading, setIsLoading] = useState(!cachedUser)
   const [isAdmin, setIsAdmin] = useState(cachedRole.isAdmin)
   const [isCaregiver, setIsCaregiver] = useState(cachedRole.role === 'caregiver')
   const initialized = useRef(false)
 
-  // Background refresh from Supabase — never blocks UI
   const refreshFromServer = useCallback((userId: string) => {
     supabase
       .from('profiles')
@@ -101,7 +99,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(profile)
         setIsAdmin(data.is_admin === true)
         setIsCaregiver(data.role === 'caregiver')
-
         saveRoleLocally(data.role || 'patient', data.is_admin === true)
         saveUserCache(profile)
 
@@ -113,7 +110,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [])
 
   const loadUser = useCallback(async (userId: string) => {
-    // 1. Try localStorage cache (instant)
     const cached = getUserCache()
     if (cached && cached.id === userId) {
       setUser(cached)
@@ -121,9 +117,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsCaregiver(role.role === 'caregiver')
       setIsAdmin(role.isAdmin)
     } else {
-      // 2. Try local IndexedDB
       try {
-        const local = await Promise.race([
+        const local = await Promise.race<UserProfile | null>([
           profilesRepo.get(userId),
           new Promise<null>(resolve => setTimeout(() => resolve(null), 1000))
         ])
@@ -136,8 +131,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       } catch {}
     }
-
-    // 3. Always refresh from server in background
     refreshFromServer(userId)
   }, [refreshFromServer])
 
@@ -146,14 +139,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     initialized.current = true
 
     const initAuth = async () => {
-      // If we have cached user, don't show loading
       if (!cachedUser) setIsLoading(true)
 
       try {
-        const session = await Promise.race([
-  getSession().catch(() => null),
-  new Promise<null>(resolve => setTimeout(() => resolve(null), 5000))
-])
+        // getSession reads from localStorage - should be instant
+        const { data: { session } } = await supabase.auth.getSession()
 
         if (session?.user) {
           await loadUser(session.user.id)
