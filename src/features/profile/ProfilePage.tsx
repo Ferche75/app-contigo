@@ -44,26 +44,45 @@ export const ProfilePage: React.FC = () => {
   const [contactWhatsapp, setContactWhatsapp] = useState('')
   const [contactRelationship, setContactRelationship] = useState('')
 
-  // Phone
   const [phone, setPhone] = useState('')
   const [savingPhone, setSavingPhone] = useState(false)
   const [phoneSaved, setPhoneSaved] = useState(false)
 
-  // Caregiver state
   const [caregiverCode, setCaregiverCode] = useState<string | null>(null)
+  const [codeStatus, setCodeStatus] = useState<'none' | 'pending' | 'active'>('none')
   const [generatingCode, setGeneratingCode] = useState(false)
   const [codeExpiry, setCodeExpiry] = useState<Date | null>(null)
 
   useEffect(() => {
     if (user) {
-      caregiverRepo.getPendingCode(user.id).then(code => {
-        if (code) setCaregiverCode(code)
-      })
-      // Load phone
+      loadCaregiverStatus()
       supabase.from('profiles').select('phone').eq('id', user.id).single()
         .then(({ data }) => { if (data?.phone) setPhone(data.phone) })
     }
   }, [user])
+
+  const loadCaregiverStatus = async () => {
+    if (!user) return
+    
+    // Buscar código pendiente
+    const pendingCode = await caregiverRepo.getPendingCode(user.id)
+    if (pendingCode) {
+      setCaregiverCode(pendingCode)
+      setCodeStatus('pending')
+      setCodeExpiry(new Date(Date.now() + 10 * 60 * 1000))
+      return
+    }
+    
+    // Buscar si hay cuidador activo
+    const activeLink = await caregiverRepo.getActiveLink(user.id)
+    if (activeLink) {
+      setCodeStatus('active')
+      setCaregiverCode(null)
+    } else {
+      setCodeStatus('none')
+      setCaregiverCode(null)
+    }
+  }
 
   const handleSavePhone = async () => {
     if (!user) return
@@ -117,6 +136,7 @@ export const ProfilePage: React.FC = () => {
     setGeneratingCode(true)
     const code = await caregiverRepo.generateCode(user.id)
     setCaregiverCode(code)
+    setCodeStatus('pending')
     setCodeExpiry(new Date(Date.now() + 10 * 60 * 1000))
     setGeneratingCode(false)
   }
@@ -125,6 +145,7 @@ export const ProfilePage: React.FC = () => {
     if (!user) return
     if (!confirm('¿Revocar el acceso del cuidador?')) return
     await caregiverRepo.revokeLink(user.id)
+    setCodeStatus('none')
     setCaregiverCode(null)
     setCodeExpiry(null)
   }
@@ -135,7 +156,6 @@ export const ProfilePage: React.FC = () => {
         <h2 className={styles.title}>Perfil</h2>
       </header>
 
-      {/* User Info */}
       <Card className={styles.userCard}>
         <CardContent>
           <div className={styles.userInfo}>
@@ -148,7 +168,6 @@ export const ProfilePage: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Phone */}
       <Card>
         <CardHeader
           title="Teléfono"
@@ -176,7 +195,6 @@ export const ProfilePage: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Emergency Contacts */}
       <Card>
         <CardHeader
           title="Contactos de emergencia"
@@ -219,11 +237,17 @@ export const ProfilePage: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Caregiver */}
       <Card>
         <CardHeader title="Modo cuidador" subtitle="Compartí tu estado con un familiar" icon={<Users size={20} />} />
         <CardContent>
-          {caregiverCode ? (
+          {codeStatus === 'active' ? (
+            <div className={styles.codeBlock}>
+              <p className={styles.codeHint}>Tenés un cuidador conectado. Podés revocar el acceso cuando quieras.</p>
+              <Button variant="ghost" size="small" fullWidth onClick={handleRevokeAccess} className={styles.revokeBtn}>
+                Revocar acceso del cuidador
+              </Button>
+            </div>
+          ) : caregiverCode ? (
             <div className={styles.codeBlock}>
               <p className={styles.codeHint}>Compartí este código con tu cuidador. Tiene 10 minutos de validez.</p>
               <div className={styles.codeDisplay}>{caregiverCode}</div>
@@ -234,9 +258,6 @@ export const ProfilePage: React.FC = () => {
               )}
               <Button variant="outline" size="medium" fullWidth onClick={handleGenerateCode} loading={generatingCode}>
                 Generar nuevo código
-              </Button>
-              <Button variant="ghost" size="small" fullWidth onClick={handleRevokeAccess} className={styles.revokeBtn}>
-                Revocar acceso del cuidador
               </Button>
             </div>
           ) : (
@@ -250,7 +271,6 @@ export const ProfilePage: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Settings */}
       <Card>
         <CardHeader title="Configuración" subtitle="Personaliza tu experiencia" icon={<Smartphone size={20} />} />
         <CardContent>
@@ -278,7 +298,6 @@ export const ProfilePage: React.FC = () => {
         <p className={styles.version}>Versión 1.0.0</p>
       </footer>
 
-      {/* Add Contact Modal */}
       <Modal isOpen={showContactModal} onClose={() => setShowContactModal(false)} title="Agregar Contacto de Emergencia" size="medium"
         footer={<><Button variant="ghost" onClick={() => setShowContactModal(false)}>Cancelar</Button><Button onClick={handleAddContact}>Guardar</Button></>}
       >
