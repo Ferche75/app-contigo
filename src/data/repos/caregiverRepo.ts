@@ -1,4 +1,3 @@
-// src/data/repos/caregiverRepo.ts
 import { supabase } from '@/data/supabase/client'
 
 export interface PatientSummary {
@@ -16,6 +15,9 @@ export interface PatientSummary {
   lastBpDiastolic: number | null
   lastBpAt: string | null
 }
+
+const requestCache = new Map<string, { data: PatientSummary | null; timestamp: number }>()
+const CACHE_TTL = 5000 // 5 segundos
 
 export const caregiverRepo = {
 
@@ -82,13 +84,19 @@ export const caregiverRepo = {
   },
 
   async getPatientSummary(caregiverUserId: string): Promise<PatientSummary | null> {
+    // Cache check
+    const cached = requestCache.get(caregiverUserId)
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+      return cached.data
+    }
+
     const { data, error } = await supabase
       .rpc('get_caregiver_summary', { p_caregiver_id: caregiverUserId })
 
     if (error || !data || data.length === 0) return null
 
     const row = data[0]
-    return {
+    const result: PatientSummary = {
       patientUserId: row.patient_user_id,
       patientName: row.patient_name,
       patientPhone: row.patient_phone ?? null,
@@ -103,6 +111,10 @@ export const caregiverRepo = {
       lastBpDiastolic: row.last_bp_diastolic ?? null,
       lastBpAt: row.last_bp_at ?? null,
     }
+
+    // Cache result
+    requestCache.set(caregiverUserId, { data: result, timestamp: Date.now() })
+    return result
   },
 
   async removeAsCaregiver(caregiverUserId: string): Promise<void> {
