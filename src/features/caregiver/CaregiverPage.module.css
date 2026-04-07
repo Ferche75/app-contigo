@@ -12,7 +12,9 @@
   padding: var(--spacing-2xl);
 }
 
-.header { margin-bottom: var(--spacing-sm); }
+.header {
+  margin-bottom: var(--spacing-sm);
+}
 
 .headerTop {
   display: flex;
@@ -48,10 +50,19 @@
   justify-content: center;
 }
 
-.refreshBtn:hover { background: var(--color-gray-100); }
+.refreshBtn:hover {
+  background: var(--color-gray-100);
+}
 
-@keyframes spin { to { transform: rotate(360deg); } }
-.spinning { animation: spin 0.8s linear infinite; }
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinning {
+  animation: spin 0.8s linear infinite;
+}
 
 /* Alert / OK banners */
 .alertBanner {
@@ -100,7 +111,10 @@
   flex-shrink: 0;
 }
 
-.cardInfo { flex: 1; min-width: 0; }
+.cardInfo {
+  flex: 1;
+  min-width: 0;
+}
 
 .cardTitle {
   font-size: var(--font-size-sm);
@@ -121,7 +135,9 @@
   margin-top: 2px;
 }
 
-.cardStatus { flex-shrink: 0; }
+.cardStatus {
+  flex-shrink: 0;
+}
 
 .cardHint {
   font-size: var(--font-size-sm);
@@ -144,6 +160,7 @@
   padding: var(--spacing-sm);
   background: var(--color-danger-light);
   border-radius: var(--radius-md);
+  text-align: center;
 }
 
 .hint {
@@ -151,6 +168,7 @@
   color: var(--color-text-secondary);
   line-height: 1.6;
   margin: 0;
+  text-align: center;
 }
 
 /* Disconnect */
@@ -158,6 +176,8 @@
   color: var(--color-text-muted) !important;
   margin-top: var(--spacing-md);
 }
+
+/* No patient state */
 .noPatientContainer {
   display: flex;
   flex-direction: column;
@@ -185,6 +205,7 @@
   margin: 0;
 }
 
+/* Code input section */
 .codeInputSection {
   display: flex;
   flex-direction: column;
@@ -212,12 +233,6 @@
   border-color: var(--color-primary);
 }
 
-.codeError {
-  color: var(--color-danger);
-  font-size: var(--font-size-sm);
-  text-align: center;
-}
-
 .connectBtn {
   background: var(--color-primary);
   color: white;
@@ -235,13 +250,6 @@
   cursor: not-allowed;
 }
 
-.hint {
-  color: var(--color-text-muted);
-  font-size: var(--font-size-sm);
-  text-align: center;
-  margin-top: 16px;
-}
-
 .cancelBtn {
   background: none;
   border: none;
@@ -255,12 +263,7 @@
   color: var(--color-text);
 }
 
-.loadingText {
-  text-align: center;
-  color: var(--color-text-muted);
-  padding: var(--spacing-2xl);
-}
-
+/* Page header */
 .pageHeader {
   display: flex;
   align-items: center;
@@ -270,25 +273,4 @@
 
 .pageHeader h2 {
   margin: 0;
-}
-
-.refreshBtn {
-  background: none;
-  border: none;
-  color: var(--color-text-secondary);
-  cursor: pointer;
-  padding: var(--spacing-sm);
-  border-radius: var(--radius-lg);
-}
-
-.refreshBtn:hover {
-  background: var(--color-gray-100);
-}
-
-.spinning {
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
 }
