@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import styles from './AppShell.module.css'
 import { TopBar } from './TopBar'
@@ -10,9 +10,16 @@ import { useNetworkStatus } from '@/hooks/useNetworkStatus'
 import { CaregiverShell } from '@/features/caregiver/CaregiverShell'
 
 export const AppShell: React.FC = () => {
-  const { isAuthenticated, isCaregiver } = useAuth()
+  const { isAuthenticated, isCaregiver, refreshUser } = useAuth()
   const { isOnline } = useNetworkStatus()
   const location = useLocation()
+
+  // Forzar refresh del usuario al cargar para asegurar rol correcto
+  useEffect(() => {
+    if (isAuthenticated) {
+      refreshUser()
+    }
+  }, [isAuthenticated, refreshUser])
 
   const isAuthPage = location.pathname === '/login' || location.pathname === '/register'
 
