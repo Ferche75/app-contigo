@@ -454,3 +454,59 @@
   text-align: center;
   margin: 0;
 }
+.codeInputSection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 24px 0;
+  width: 100%;
+  max-width: 300px;
+}
+
+.codeInput {
+  font-size: 2rem;
+  text-align: center;
+  letter-spacing: 0.4em;
+  font-weight: 700;
+  padding: 16px;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  color: var(--color-text);
+  width: 100%;
+}
+
+.codeInput:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.codeError {
+  color: var(--color-danger);
+  font-size: var(--font-size-sm);
+  text-align: center;
+}
+
+.connectBtn {
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  padding: 16px 24px;
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.connectBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.hint {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  text-align: center;
+  margin-top: 16px;
+}
