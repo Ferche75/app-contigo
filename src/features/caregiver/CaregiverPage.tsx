@@ -14,7 +14,8 @@ import {
   AlertTriangle,
   RefreshCw,
   UserX,
-  Clock
+  Clock,
+  Edit3
 } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { caregiverRepo } from '@/data/repos/caregiverRepo'
@@ -35,10 +36,10 @@ export const CaregiverPage: React.FC = () => {
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
 
-  // Code activation
   const [code, setCode] = useState('')
   const [activating, setActivating] = useState(false)
   const [codeError, setCodeError] = useState('')
+  const [showChangeCode, setShowChangeCode] = useState(false)
 
   useEffect(() => {
     if (user) load()
@@ -65,6 +66,7 @@ export const CaregiverPage: React.FC = () => {
     const result = await caregiverRepo.activateCode(code.trim(), user.id)
     if (result === 'ok') {
       setCode('')
+      setShowChangeCode(false)
       await load()
     } else if (result === 'not_found') {
       setCodeError('Código incorrecto o expirado. Pedile a tu familiar que genere uno nuevo.')
@@ -79,9 +81,15 @@ export const CaregiverPage: React.FC = () => {
     if (!confirm('¿Desconectarte del paciente? Deberás ingresar un nuevo código para volver a conectarte.')) return
     await caregiverRepo.removeAsCaregiver(user.id)
     setSummary(null)
+    setShowChangeCode(false)
   }
 
-  // ── Glucose status helper ────────────────────────────────
+  const handleChangePatient = () => {
+    setShowChangeCode(true)
+    setCode('')
+    setCodeError('')
+  }
+
   const getGlucoseStatus = (value: number | null, type: string | null) => {
     if (!value) return null
     if (value < 70) return 'low'
@@ -103,7 +111,6 @@ export const CaregiverPage: React.FC = () => {
     return 'normal'
   }
 
-  // ── Loading ──────────────────────────────────────────────
   if (loading) {
     return (
       <div className={styles.page}>
@@ -112,13 +119,17 @@ export const CaregiverPage: React.FC = () => {
     )
   }
 
-  // ── No patient linked yet ────────────────────────────────
-  if (!summary) {
+  if (!summary || showChangeCode) {
     return (
       <div className={styles.page}>
         <header className={styles.header}>
           <h2 className={styles.title}>Modo cuidador</h2>
-          <p className={styles.subtitle}>Ingresá el código de 6 dígitos que te compartió tu familiar</p>
+          <p className={styles.subtitle}>
+            {showChangeCode 
+              ? 'Ingresá el nuevo código de 6 dígitos de tu familiar'
+              : 'Ingresá el código de 6 dígitos que te compartió tu familiar'
+            }
+          </p>
         </header>
 
         <Card>
@@ -141,8 +152,18 @@ export const CaregiverPage: React.FC = () => {
                 loading={activating}
                 disabled={code.length !== 6}
               >
-                Conectarme
+                {showChangeCode ? 'Cambiar paciente' : 'Conectarme'}
               </Button>
+              {showChangeCode && (
+                <Button
+                  variant="ghost"
+                  size="medium"
+                  fullWidth
+                  onClick={() => setShowChangeCode(false)}
+                >
+                  Cancelar
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -160,7 +181,6 @@ export const CaregiverPage: React.FC = () => {
     )
   }
 
-  // ── Patient summary view ─────────────────────────────────
   const glucoseStatus = getGlucoseStatus(summary.lastGlucose, summary.lastGlucoseType)
   const bpStatus = getBpStatus(summary.lastBpSystolic, summary.lastBpDiastolic)
   const medsOk = summary.medsTotal > 0 && summary.medsTaken === summary.medsTotal
@@ -191,7 +211,6 @@ export const CaregiverPage: React.FC = () => {
         </div>
       </header>
 
-      {/* Alert banner */}
       {hasAlerts && (
         <div className={styles.alertBanner}>
           <AlertTriangle size={20} />
@@ -206,7 +225,6 @@ export const CaregiverPage: React.FC = () => {
         </div>
       )}
 
-      {/* Medication card */}
       <Card className={medsMissing ? styles.cardAlert : ''}>
         <CardContent>
           <div className={styles.cardRow}>
@@ -236,7 +254,6 @@ export const CaregiverPage: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Foot check card */}
       <Card className={summary.footWoundFound ? styles.cardAlert : ''}>
         <CardContent>
           <div className={styles.cardRow}>
@@ -264,7 +281,6 @@ export const CaregiverPage: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Glucose card */}
       <Card className={glucoseStatus && glucoseStatus !== 'normal' ? styles.cardAlert : ''}>
         <CardContent>
           <div className={styles.cardRow}>
@@ -300,7 +316,6 @@ export const CaregiverPage: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Blood pressure card */}
       <Card className={bpStatus && bpStatus !== 'normal' ? styles.cardAlert : ''}>
         <CardContent>
           <div className={styles.cardRow}>
@@ -336,7 +351,17 @@ export const CaregiverPage: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Disconnect */}
+      <Button
+        variant="outline"
+        size="medium"
+        fullWidth
+        leftIcon={<Edit3 size={18} />}
+        onClick={handleChangePatient}
+        className={styles.changePatientBtn}
+      >
+        Cambiar paciente (ingresar nuevo código)
+      </Button>
+
       <Button
         variant="ghost"
         size="medium"
