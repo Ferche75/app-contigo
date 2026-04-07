@@ -1,7 +1,7 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import styles from './TabBar.module.css'
-import { Calendar, Home, Pill, Footprints, User, Activity } from 'lucide-react'
+import { Calendar, Home, Pill, Footprints, Activity } from 'lucide-react'
 import clsx from 'clsx'
 
 interface TabItem {
@@ -21,8 +21,15 @@ const tabs: TabItem[] = [
 export const TabBar: React.FC = () => {
   const location = useLocation()
   const navigate = useNavigate()
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 1024)
 
-  if (window.innerWidth >= 1024) return null
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 1024)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  if (!isMobile) return null
 
   return (
     <nav className={styles.tabBar} role="navigation" aria-label="Navegación principal">
