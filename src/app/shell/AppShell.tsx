@@ -24,12 +24,10 @@ export const AppShell: React.FC = () => {
     )
   }
 
-  // Caregiver gets a completely different shell
   if (isCaregiver) {
     return <CaregiverShell isOnline={isOnline} />
   }
 
-  // Patient shell — normal app
   return (
     <div className={styles.shell}>
       <TopBar />
