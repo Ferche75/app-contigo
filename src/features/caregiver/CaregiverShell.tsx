@@ -38,10 +38,13 @@ export const CaregiverShell: React.FC<Props> = ({ isOnline }) => {
   const [reminderStatus, setReminderStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
 
   useEffect(() => {
-    if (user) load()
-    const interval = setInterval(() => { if (user) load() }, 5 * 60 * 1000)
-    return () => clearInterval(interval)
-  }, [user])
+  if (user) load()
+  const interval = setInterval(() => { 
+    if (user) load() 
+  }, 5 * 60 * 1000) // 5 minutos
+  
+  return () => clearInterval(interval) // Esto está bien
+}, [user])
 
   const load = async () => {
     if (!user) return
