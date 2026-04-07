@@ -94,7 +94,6 @@ export const ProfilePage: React.FC = () => {
   const handleAddContact = async () => {
     if (!user || !contactName || !contactPhone) return
     
-    // ID seguro compatible con todos los navegadores
     const newContact: EmergencyContact = {
       id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       name: contactName,
@@ -132,7 +131,7 @@ export const ProfilePage: React.FC = () => {
 
   const handleLogout = async () => {
     await signOut()
-    navigate('/login') // ✅ Usar navigate en lugar de window.location
+    navigate('/login')
   }
 
   const handleGenerateCode = async () => {
@@ -289,7 +288,7 @@ export const ProfilePage: React.FC = () => {
               label="Notificaciones" 
               helperText="Recibir alertas de medicación" 
               checked={notificationsEnabled} 
-              onChange={() => requestNotificationPermission()}  // ✅ Fix: wrapper arrow function
+              onChange={() => requestNotificationPermission()} 
             />
             <Switch 
               label="Sonido de alertas" 
