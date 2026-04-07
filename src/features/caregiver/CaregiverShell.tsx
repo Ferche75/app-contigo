@@ -1,5 +1,5 @@
 // src/features/caregiver/CaregiverShell.tsx
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import styles from './CaregiverShell.module.css'
 import {
   Pill, Footprints, Droplets, Heart,
@@ -32,32 +32,54 @@ export const CaregiverShell: React.FC<Props> = ({ isOnline }) => {
   const [refreshing, setRefreshing] = useState(false)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
 
-  // Reminder modal state
   const [showReminderModal, setShowReminderModal] = useState(false)
   const [customMessage, setCustomMessage] = useState('')
   const [reminderStatus, setReminderStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
 
-  useEffect(() => {
-  if (user) load()
-  const interval = setInterval(() => { 
-    if (user) load() 
-  }, 5 * 60 * 1000) // 5 minutos
-  
-  return () => clearInterval(interval) // Esto está bien
-}, [user])
+  const isLoadingRef = useRef(false)
+  const userIdRef = useRef<string | null>(null)
 
-  const load = async () => {
-    if (!user) return
-    const s = await caregiverRepo.getPatientSummary(user.id)
-    setSummary(s)
-    setLastUpdated(new Date())
-    setLoading(false)
-  }
+  useEffect(() => {
+    if (!user?.id) return
+    if (userIdRef.current === user.id && !loading) return
+    
+    userIdRef.current = user.id
+    
+    const loadOnce = async () => {
+      if (isLoadingRef.current) return
+      isLoadingRef.current = true
+      
+      try {
+        const s = await caregiverRepo.getPatientSummary(user.id)
+        setSummary(s)
+        setLastUpdated(new Date())
+      } finally {
+        setLoading(false)
+        isLoadingRef.current = false
+      }
+    }
+    
+    loadOnce()
+    
+    const interval = setInterval(() => {
+      if (!isLoadingRef.current && user?.id) {
+        loadOnce()
+      }
+    }, 5 * 60 * 1000)
+    
+    return () => clearInterval(interval)
+  }, [user?.id])
 
   const handleRefresh = async () => {
+    if (!user?.id || refreshing) return
     setRefreshing(true)
-    await load()
-    setRefreshing(false)
+    try {
+      const s = await caregiverRepo.getPatientSummary(user.id)
+      setSummary(s)
+      setLastUpdated(new Date())
+    } finally {
+      setRefreshing(false)
+    }
   }
 
   const handleLogout = async () => {
@@ -130,7 +152,6 @@ export const CaregiverShell: React.FC<Props> = ({ isOnline }) => {
     medsMissing
   )
 
-  // Quick reminder options based on patient status
   const quickOptions = summary ? [
     medsMissing && {
       label: '💊 Recordatorio de medicación',
@@ -303,7 +324,6 @@ export const CaregiverShell: React.FC<Props> = ({ isOnline }) => {
         )}
       </main>
 
-      {/* Reminder Modal */}
       {showReminderModal && summary && (
         <div className={styles.modalOverlay} onClick={() => setShowReminderModal(false)}>
           <div className={styles.modal} onClick={e => e.stopPropagation()}>
@@ -315,7 +335,6 @@ export const CaregiverShell: React.FC<Props> = ({ isOnline }) => {
             </div>
 
             <div className={styles.modalBody}>
-              {/* Quick options */}
               <p className={styles.modalLabel}>Opciones rápidas</p>
               <div className={styles.quickOptions}>
                 {quickOptions.map((opt, i) => (
@@ -330,7 +349,6 @@ export const CaregiverShell: React.FC<Props> = ({ isOnline }) => {
                 ))}
               </div>
 
-              {/* Custom message */}
               <p className={styles.modalLabel}>O escribí un mensaje personalizado</p>
               <div className={styles.customRow}>
                 <textarea
