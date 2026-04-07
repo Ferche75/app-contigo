@@ -64,7 +64,6 @@ export const ProfilePage: React.FC = () => {
   const loadCaregiverStatus = async () => {
     if (!user) return
     
-    // Buscar código pendiente
     const pendingCode = await caregiverRepo.getPendingCode(user.id)
     if (pendingCode) {
       setCaregiverCode(pendingCode)
@@ -73,7 +72,6 @@ export const ProfilePage: React.FC = () => {
       return
     }
     
-    // Buscar si hay cuidador activo
     const activeLink = await caregiverRepo.getActiveLink(user.id)
     if (activeLink) {
       setCodeStatus('active')
@@ -95,19 +93,25 @@ export const ProfilePage: React.FC = () => {
 
   const handleAddContact = async () => {
     if (!user || !contactName || !contactPhone) return
+    
+    // ID seguro compatible con todos los navegadores
     const newContact: EmergencyContact = {
-      id: crypto.randomUUID(),
+      id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       name: contactName,
       phone: contactPhone,
       whatsapp: contactWhatsapp || undefined,
       relationship: contactRelationship || undefined,
       isPrimary: user.emergencyContacts.length === 0
     }
+    
     const updatedContacts = [...user.emergencyContacts, newContact]
     await profilesRepo.updateEmergencyContacts(user.id, updatedContacts)
     await updateProfile({ emergencyContacts: updatedContacts })
     setShowContactModal(false)
-    setContactName(''); setContactPhone(''); setContactWhatsapp(''); setContactRelationship('')
+    setContactName('')
+    setContactPhone('')
+    setContactWhatsapp('')
+    setContactRelationship('')
   }
 
   const handleDeleteContact = async (contactId: string) => {
@@ -128,7 +132,7 @@ export const ProfilePage: React.FC = () => {
 
   const handleLogout = async () => {
     await signOut()
-    window.location.href = '/login'
+    navigate('/login') // ✅ Usar navigate en lugar de window.location
   }
 
   const handleGenerateCode = async () => {
@@ -179,7 +183,7 @@ export const ProfilePage: React.FC = () => {
             <Input
               label="Tu número de WhatsApp"
               value={phone}
-              onChange={e => setPhone(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPhone(e.target.value)}
               placeholder="+54 11 1234 5678"
               fullWidth
             />
@@ -275,10 +279,30 @@ export const ProfilePage: React.FC = () => {
         <CardHeader title="Configuración" subtitle="Personaliza tu experiencia" icon={<Smartphone size={20} />} />
         <CardContent>
           <div className={styles.settingsList}>
-            <Switch label="Modo de baja visión" helperText="Texto más grande y alto contraste" checked={lowVisionMode} onChange={toggleLowVisionMode} />
-            <Switch label="Notificaciones" helperText="Recibir alertas de medicación" checked={notificationsEnabled} onChange={requestNotificationPermission} />
-            <Switch label="Sonido de alertas" helperText="Reproducir sonido para recordatorios" checked={soundEnabled} onChange={toggleSound} />
-            <Switch label="Vibración" helperText="Vibrar para alertas importantes" checked={vibrationEnabled} onChange={toggleVibration} />
+            <Switch 
+              label="Modo de baja visión" 
+              helperText="Texto más grande y alto contraste" 
+              checked={lowVisionMode} 
+              onChange={toggleLowVisionMode} 
+            />
+            <Switch 
+              label="Notificaciones" 
+              helperText="Recibir alertas de medicación" 
+              checked={notificationsEnabled} 
+              onChange={() => requestNotificationPermission()}  // ✅ Fix: wrapper arrow function
+            />
+            <Switch 
+              label="Sonido de alertas" 
+              helperText="Reproducir sonido para recordatorios" 
+              checked={soundEnabled} 
+              onChange={toggleSound} 
+            />
+            <Switch 
+              label="Vibración" 
+              helperText="Vibrar para alertas importantes" 
+              checked={vibrationEnabled} 
+              onChange={toggleVibration} 
+            />
           </div>
         </CardContent>
       </Card>
@@ -298,14 +322,49 @@ export const ProfilePage: React.FC = () => {
         <p className={styles.version}>Versión 1.0.0</p>
       </footer>
 
-      <Modal isOpen={showContactModal} onClose={() => setShowContactModal(false)} title="Agregar Contacto de Emergencia" size="medium"
-        footer={<><Button variant="ghost" onClick={() => setShowContactModal(false)}>Cancelar</Button><Button onClick={handleAddContact}>Guardar</Button></>}
+      <Modal 
+        isOpen={showContactModal} 
+        onClose={() => setShowContactModal(false)} 
+        title="Agregar Contacto de Emergencia" 
+        size="medium"
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setShowContactModal(false)}>Cancelar</Button>
+            <Button onClick={handleAddContact}>Guardar</Button>
+          </>
+        }
       >
         <div className={styles.form}>
-          <Input label="Nombre" value={contactName} onChange={e => setContactName(e.target.value)} placeholder="Ej: María (hija)" required fullWidth />
-          <Input label="Teléfono" value={contactPhone} onChange={e => setContactPhone(e.target.value)} placeholder="+54 11 1234 5678" required fullWidth />
-          <Input label="WhatsApp (opcional)" value={contactWhatsapp} onChange={e => setContactWhatsapp(e.target.value)} placeholder="+54 11 1234 5678" fullWidth />
-          <Input label="Relación (opcional)" value={contactRelationship} onChange={e => setContactRelationship(e.target.value)} placeholder="Ej: Hijo, Esposa, Amigo" fullWidth />
+          <Input 
+            label="Nombre" 
+            value={contactName} 
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setContactName(e.target.value)} 
+            placeholder="Ej: María (hija)" 
+            required 
+            fullWidth 
+          />
+          <Input 
+            label="Teléfono" 
+            value={contactPhone} 
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setContactPhone(e.target.value)} 
+            placeholder="+54 11 1234 5678" 
+            required 
+            fullWidth 
+          />
+          <Input 
+            label="WhatsApp (opcional)" 
+            value={contactWhatsapp} 
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setContactWhatsapp(e.target.value)} 
+            placeholder="+54 11 1234 5678" 
+            fullWidth 
+          />
+          <Input 
+            label="Relación (opcional)" 
+            value={contactRelationship} 
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setContactRelationship(e.target.value)} 
+            placeholder="Ej: Hijo, Esposa, Amigo" 
+            fullWidth 
+          />
         </div>
       </Modal>
     </div>
