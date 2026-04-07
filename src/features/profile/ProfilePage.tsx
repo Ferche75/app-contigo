@@ -247,7 +247,7 @@ export const ProfilePage: React.FC = () => {
                 Revocar acceso del cuidador
               </Button>
             </div>
-          ) : caregiverCode ? (
+          ) : codeStatus === 'pending' && caregiverCode ? (
             <div className={styles.codeBlock}>
               <p className={styles.codeHint}>Compartí este código con tu cuidador. Tiene 10 minutos de validez.</p>
               <div className={styles.codeDisplay}>{caregiverCode}</div>
