@@ -71,42 +71,48 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isCaregiver, setIsCaregiver] = useState(cachedRole.role === 'caregiver')
   const initialized = useRef(false)
 
-const refreshFromServer = useCallback((userId: string) => {
-  void supabase
-    .from('profiles')
-    .select('*, role, is_admin')
-    .eq('id', userId)
-    .maybeSingle()
-    .then(({ data, error }) => {
-      if (error || !data) return
+  const refreshFromServer = useCallback((userId: string) => {
+    void supabase
+      .from('profiles')
+      .select('*, role, is_admin')
+      .eq('id', userId)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (error || !data) return
 
-      const profile: UserProfile = {
-        id: data.id,
-        email: data.email,
-        name: data.name,
-        age: data.age,
-        diabetesType: data.diabetes_type,
-        doctorName: data.doctor_name,
-        doctorPhone: data.doctor_phone,
-        allergies: data.allergies,
-        baseMedication: data.base_medication,
-        emergencyContacts: data.emergency_contacts || [],
-        lowVisionMode: data.low_vision_mode ?? false,
-        createdAt: data.created_at,
-        updatedAt: data.updated_at
-      }
+        const profile: UserProfile = {
+          id: data.id,
+          email: data.email,
+          name: data.name,
+          age: data.age,
+          diabetesType: data.diabetes_type,
+          doctorName: data.doctor_name,
+          doctorPhone: data.doctor_phone,
+          allergies: data.allergies,
+          baseMedication: data.base_medication,
+          emergencyContacts: data.emergency_contacts || [],
+          lowVisionMode: data.low_vision_mode ?? false,
+          createdAt: data.created_at,
+          updatedAt: data.updated_at
+        }
 
-      setUser(profile)
-      setIsAdmin(data.is_admin === true)
-      setIsCaregiver(data.role === 'caregiver')
-      saveRoleLocally(data.role || 'patient', data.is_admin === true)
-      saveUserCache(profile)
+        setUser(profile)
+        setIsAdmin(data.is_admin === true)
+        
+        // FIX: Solo actualizar rol si viene de la BD, sino mantener el local
+        const serverRole = data.role
+        const localRole = getLocalRole()
+        const finalRole = serverRole || localRole.role || 'patient'
+        
+        setIsCaregiver(finalRole === 'caregiver')
+        saveRoleLocally(finalRole, data.is_admin === true)
+        saveUserCache(profile)
 
-      if (data.role !== 'caregiver') {
-        void syncEngine.syncFromServer(userId)
-      }
-    })
-}, [])
+        if (finalRole !== 'caregiver') {
+          void syncEngine.syncFromServer(userId)
+        }
+      })
+  }, [])
 
   const loadUser = useCallback(async (userId: string) => {
     const cached = getUserCache()
@@ -141,7 +147,6 @@ const refreshFromServer = useCallback((userId: string) => {
       if (!cachedUser) setIsLoading(true)
 
       try {
-        // getSession reads from localStorage - should be instant
         const { data: { session } } = await supabase.auth.getSession()
 
         if (session?.user) {
