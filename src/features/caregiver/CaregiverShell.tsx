@@ -4,7 +4,7 @@ import styles from './CaregiverShell.module.css'
 import {
   Pill, Footprints, Droplets, Heart,
   CheckCircle2, XCircle, AlertTriangle, Clock,
-  RefreshCw, Phone, MessageCircle, Bell, LogOut, Send, X
+  RefreshCw, Phone, MessageCircle, Bell, LogOut, Send, X, Edit3
 } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { caregiverRepo } from '@/data/repos/caregiverRepo'
@@ -35,6 +35,11 @@ export const CaregiverShell: React.FC<Props> = ({ isOnline }) => {
   const [showReminderModal, setShowReminderModal] = useState(false)
   const [customMessage, setCustomMessage] = useState('')
   const [reminderStatus, setReminderStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
+
+  // Estados para el código
+  const [code, setCode] = useState('')
+  const [activating, setActivating] = useState(false)
+  const [codeError, setCodeError] = useState('')
 
   const isLoadingRef = useRef(false)
   const userIdRef = useRef<string | null>(null)
@@ -80,6 +85,22 @@ export const CaregiverShell: React.FC<Props> = ({ isOnline }) => {
     } finally {
       setRefreshing(false)
     }
+  }
+
+  const handleActivateCode = async () => {
+    if (!user?.id || code.length !== 6) return
+    setActivating(true)
+    setCodeError('')
+    const result = await caregiverRepo.activateCode(code.trim(), user.id)
+    if (result === 'ok') {
+      setCode('')
+      await handleRefresh()
+    } else if (result === 'not_found') {
+      setCodeError('Código incorrecto o expirado.')
+    } else {
+      setCodeError('Este código ya fue usado.')
+    }
+    setActivating(false)
   }
 
   const handleLogout = async () => {
@@ -206,7 +227,30 @@ export const CaregiverShell: React.FC<Props> = ({ isOnline }) => {
           <div className={styles.noPatient}>
             <div className={styles.noPatientIcon}>👥</div>
             <h2>Sin paciente vinculado</h2>
-            <p>Pedile a tu familiar que genere un código desde <strong>Perfil → Modo cuidador</strong> y volvé a registrarte con ese código.</p>
+            <p>Ingresá el código de 6 dígitos que te compartió tu familiar</p>
+            
+            <div className={styles.codeInputSection}>
+              <input
+                type="text"
+                value={code}
+                onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                placeholder="123456"
+                className={styles.codeInput}
+                maxLength={6}
+              />
+              {codeError && <p className={styles.codeError}>{codeError}</p>}
+              <button 
+                className={styles.connectBtn}
+                onClick={handleActivateCode}
+                disabled={code.length !== 6 || activating}
+              >
+                {activating ? 'Conectando...' : 'Conectarme'}
+              </button>
+            </div>
+            
+            <p className={styles.hint}>
+              ¿No tenés código? Pedile a tu familiar que genere uno desde <strong>Perfil → Modo cuidador</strong>.
+            </p>
           </div>
         ) : (
           <>
