@@ -1,5 +1,5 @@
 // src/features/caregiver/CaregiverPage.tsx
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import styles from './CaregiverPage.module.css'
 import { Card, CardContent } from '@/components/ui/Card/Card'
 import { Button } from '@/components/ui/Button/Button'
@@ -21,6 +21,12 @@ import { useAuth } from '@/context/AuthContext'
 import { caregiverRepo } from '@/data/repos/caregiverRepo'
 import type { PatientSummary } from '@/data/repos/caregiverRepo'
 
+interface Props {
+  summary: PatientSummary | null
+  loading: boolean
+  onPatientConnected: () => void
+}
+
 function timeAgo(isoDate: string): string {
   const diff = Date.now() - new Date(isoDate).getTime()
   const mins = Math.floor(diff / 60000)
@@ -30,10 +36,8 @@ function timeAgo(isoDate: string): string {
   return `hace ${Math.floor(hours / 24)}d`
 }
 
-export const CaregiverPage: React.FC = () => {
+export const CaregiverPage: React.FC<Props> = ({ summary, loading, onPatientConnected }) => {
   const { user } = useAuth()
-  const [summary, setSummary] = useState<PatientSummary | null>(null)
-  const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
 
   const [code, setCode] = useState('')
@@ -41,22 +45,11 @@ export const CaregiverPage: React.FC = () => {
   const [codeError, setCodeError] = useState('')
   const [showChangeCode, setShowChangeCode] = useState(false)
 
-  useEffect(() => {
-    if (user) load()
-  }, [user])
-
-  const load = async () => {
-    if (!user) return
-    setLoading(true)
-    const s = await caregiverRepo.getPatientSummary(user.id)
-    setSummary(s)
-    setLoading(false)
-  }
-
   const handleRefresh = async () => {
+    if (!user) return
     setRefreshing(true)
-    await load()
-    setRefreshing(false)
+    // No hacemos nada, el refresh viene del padre
+    setTimeout(() => setRefreshing(false), 500)
   }
 
   const handleActivate = async () => {
@@ -67,9 +60,9 @@ export const CaregiverPage: React.FC = () => {
     if (result === 'ok') {
       setCode('')
       setShowChangeCode(false)
-      await load()
+      onPatientConnected() // Avisar al padre que recargue
     } else if (result === 'not_found') {
-      setCodeError('Código incorrecto o expirado. Pedile a tu familiar que genere uno nuevo.')
+      setCodeError('Código incorrecto o expirado.')
     } else {
       setCodeError('Este código ya fue usado.')
     }
@@ -78,10 +71,9 @@ export const CaregiverPage: React.FC = () => {
 
   const handleDisconnect = async () => {
     if (!user) return
-    if (!confirm('¿Desconectarte del paciente? Deberás ingresar un nuevo código para volver a conectarte.')) return
+    if (!confirm('¿Desconectarte del paciente?')) return
     await caregiverRepo.removeAsCaregiver(user.id)
-    setSummary(null)
-    setShowChangeCode(false)
+    onPatientConnected() // Recargar
   }
 
   const handleChangePatient = () => {
@@ -112,75 +104,53 @@ export const CaregiverPage: React.FC = () => {
   }
 
   if (loading) {
-    return (
-      <div className={styles.page}>
-        <div className={styles.loadingText}>Cargando...</div>
-      </div>
-    )
+    return <div className={styles.loadingText}>Cargando...</div>
   }
 
+  // SIN PACIENTE - Mostrar input de código
   if (!summary || showChangeCode) {
     return (
-      <div className={styles.page}>
-        <header className={styles.header}>
-          <h2 className={styles.title}>Modo cuidador</h2>
-          <p className={styles.subtitle}>
-            {showChangeCode 
-              ? 'Ingresá el nuevo código de 6 dígitos de tu familiar'
-              : 'Ingresá el código de 6 dígitos que te compartió tu familiar'
-            }
-          </p>
-        </header>
-
-        <Card>
-          <CardContent>
-            <div className={styles.codeForm}>
-              <Input
-                label="Código de acceso"
-                value={code}
-                onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                placeholder="123456"
-                fullWidth
-                style={{ fontSize: '2rem', textAlign: 'center', letterSpacing: '0.4em', fontWeight: 700 }}
-              />
-              {codeError && <p className={styles.codeError}>{codeError}</p>}
-              <Button
-                variant="primary"
-                size="large"
-                fullWidth
-                onClick={handleActivate}
-                loading={activating}
-                disabled={code.length !== 6}
-              >
-                {showChangeCode ? 'Cambiar paciente' : 'Conectarme'}
-              </Button>
-              {showChangeCode && (
-                <Button
-                  variant="ghost"
-                  size="medium"
-                  fullWidth
-                  onClick={() => setShowChangeCode(false)}
-                >
-                  Cancelar
-                </Button>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent>
-            <p className={styles.hint}>
-              <strong>¿Cómo obtener el código?</strong><br />
-              Tu familiar tiene que ir a <strong>Perfil → Modo cuidador</strong> y tocar "Generar código". 
-              El código tiene 10 minutos de validez.
-            </p>
-          </CardContent>
-        </Card>
+      <div className={styles.noPatientContainer}>
+        <div className={styles.noPatientIcon}>👥</div>
+        <h2>Sin paciente vinculado</h2>
+        <p>Ingresá el código de 6 dígitos que te compartió tu familiar</p>
+        
+        <div className={styles.codeInputSection}>
+          <input
+            type="text"
+            value={code}
+            onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+            placeholder="123456"
+            className={styles.codeInput}
+            maxLength={6}
+          />
+          {codeError && <p className={styles.codeError}>{codeError}</p>}
+          <button 
+            className={styles.connectBtn}
+            onClick={handleActivate}
+            disabled={code.length !== 6 || activating}
+          >
+            {activating ? 'Conectando...' : 'Conectarme'}
+          </button>
+        </div>
+        
+        <p className={styles.hint}>
+          ¿No tenés código? Pedile a tu familiar que genere uno desde <strong>Perfil → Modo cuidador</strong>.
+        </p>
+        
+        {showChangeCode && (
+          <button 
+            className={styles.cancelBtn}
+            onClick={() => setShowChangeCode(false)}
+          >
+            Cancelar
+          </button>
+        )}
       </div>
     )
   }
 
+  // CON PACIENTE - Mostrar resumen
   const glucoseStatus = getGlucoseStatus(summary.lastGlucose, summary.lastGlucoseType)
   const bpStatus = getBpStatus(summary.lastBpSystolic, summary.lastBpDiastolic)
   const medsOk = summary.medsTotal > 0 && summary.medsTaken === summary.medsTotal
@@ -194,31 +164,27 @@ export const CaregiverPage: React.FC = () => {
 
   return (
     <div className={styles.page}>
-      <header className={styles.header}>
-        <div className={styles.headerTop}>
-          <div>
-            <h2 className={styles.title}>{summary.patientName}</h2>
-            <p className={styles.subtitle}>Resumen de hoy</p>
-          </div>
-          <button
-            className={styles.refreshBtn}
-            onClick={handleRefresh}
-            disabled={refreshing}
-            aria-label="Actualizar"
-          >
-            <RefreshCw size={20} className={refreshing ? styles.spinning : ''} />
-          </button>
+      <header className={styles.pageHeader}>
+        <div>
+          <h2 className={styles.title}>{summary.patientName}</h2>
+          <p className={styles.subtitle}>Resumen de hoy</p>
         </div>
+        <button
+          className={styles.refreshBtn}
+          onClick={handleRefresh}
+          disabled={refreshing}
+          aria-label="Actualizar"
+        >
+          <RefreshCw size={20} className={refreshing ? styles.spinning : ''} />
+        </button>
       </header>
 
-      {hasAlerts && (
+      {hasAlerts ? (
         <div className={styles.alertBanner}>
           <AlertTriangle size={20} />
           <span>Hay alertas que requieren tu atención</span>
         </div>
-      )}
-
-      {!hasAlerts && (
+      ) : (
         <div className={styles.okBanner}>
           <CheckCircle2 size={20} />
           <span>Todo en orden hoy</span>
